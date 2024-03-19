@@ -67,7 +67,7 @@ def detect_and_reco(image):
         input_vector = np.ravel(img3).reshape((-1, 90, 90, 1))/255
         print(input_vector)
         print(input_vector.shape)
-        result = cnn_face_recognition.predict(input_vector, verbose=0)
+        result = cnn_face_recognition.predict(input_vector)
     
 
         # Add BoundingBoxes and Tags
