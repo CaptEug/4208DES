@@ -3,27 +3,27 @@ import numpy as np
 import dlib
 import argparse
 import keras
-import random
 
 parser = argparse.ArgumentParser(description='Code for Live face Recognizer')
 parser.add_argument('--camera', help='Camera divide number.', type=int, default=0)
 parser.add_argument('--cnn', default='models/cnn.keras')
 args = parser.parse_args()
+scce = keras.losses.SparseCategoricalCrossentropy()
 
-facemapping = {
-    0:'E',
-    1:'G',
-    2:'hanseng',
-    3:'eugene',
-    4:'tanaaz',
-    5:'B',
-    6:'ivan',
-    7:'A',
-    8:'F',
-    9:'C',
-    10:'david',
-    11:'D',
-    12:'hiran'}
+facemapping = { 0:"david",
+                1:"eugene",
+                2:"hanseng",
+                3:"hiran",
+                4:"ivan",
+                5:"tanaaz" }
+
+colormapping = {
+    0:(255,0,0),
+    1:(255,255,0),
+    2:(255,0,255),
+    3:(0,255,255),
+    4:(0,255,0),
+    5:(0,0,255)}
 
 # Load pre-trained models
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -39,7 +39,7 @@ def calculate_tilt_angle(landmarks):
     angle = np.degrees(np.arctan2(dY, dX))
     return angle
 
-# Function to detect and recognize faces : Main Function
+# Function to detect and recognize faces
 def detect_and_reco(image):
     # Detect faces using V&J
     faces = face_cascade.detectMultiScale(image, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
@@ -64,16 +64,21 @@ def detect_and_reco(image):
         img3 = cv2.resize(img2, (90, 90), interpolation = cv2.INTER_LINEAR)
 
         # Run the CNN classifyier
-        input_vector = np.ravel(img3).reshape((-1, 90, 90, 1))/255
-        print(input_vector)
-        print(input_vector.shape)
-        result = cnn_face_recognition.predict(input_vector)
-    
-
+        input_v = np.ravel(img3).reshape((-1, 90, 90, 1))/255
+        print(input_v)
+        print(input_v.shape)
+        result = cnn_face_recognition.predict(input_v)
+        print(result)
+        
         # Add BoundingBoxes and Tags
-        color = (random.randint(0,255), random.randint(0,255), random.randint(0,255))
+        if result[0][np.argmax(result)] < 0.9 :
+            name = '?'
+            color = (0,0,0)
+        else:
+            name = facemapping[np.argmax(result)]
+            color = colormapping[np.argmax(result)]
         image = cv2.rectangle(image, (x,y), (x+w, y+h), color=color, thickness=4)
-        image = cv2.putText(image, str(facemapping[np.argmax(result)]), (x,y+h), color=color, fontFace=1, fontScale=2, thickness=4)
+        image = cv2.putText(image, name, (x,y+h), color=color, fontFace=1, fontScale=2, thickness=4)
     cv2.imshow('Capture - Face detection', frame)
 
 
