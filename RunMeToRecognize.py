@@ -77,8 +77,9 @@ def detect_and_reco(image):
         else:
             name = facemapping[np.argmax(result)]
             color = colormapping[np.argmax(result)]
+        confidence = str(format(result[0][np.argmax(result)], '.2f'))
         image = cv2.rectangle(image, (x,y), (x+w, y+h), color=color, thickness=4)
-        image = cv2.putText(image, name, (x,y+h), color=color, fontFace=1, fontScale=2, thickness=4)
+        image = cv2.putText(image, name + confidence, (x,y+h), color=color, fontFace=1, fontScale=2, thickness=4)
     cv2.imshow('Capture - Face detection', frame)
 
 
