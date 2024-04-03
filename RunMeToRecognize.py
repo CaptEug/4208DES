@@ -3,6 +3,7 @@ import numpy as np
 import dlib
 import argparse
 import keras
+import time
 
 parser = argparse.ArgumentParser(description='Code for Live face Recognizer')
 parser.add_argument('--camera', help='Camera divide number.', type=int, default=0)
@@ -80,24 +81,37 @@ def detect_and_reco(image):
         confidence = str(format(result[0][np.argmax(result)], '.2f'))
         image = cv2.rectangle(image, (x,y), (x+w, y+h), color=color, thickness=4)
         image = cv2.putText(image, name + confidence, (x,y+h), color=color, fontFace=1, fontScale=2, thickness=4)
-    cv2.imshow('Capture - Face detection', frame)
 
 
 
 camera_device = args.camera
 # Read the video stream
 cap = cv2.VideoCapture(camera_device)
+
+prev_frame_time = 0
+new_frame_time = 0
+
 if not cap.isOpened:
     print('--(!)Error opening video capture')
     exit(0)
 
 while True:
     ret, frame = cap.read()
+    
+    
     if frame is None:
         print('--(!) No captured frame -- Break!')
         break
 
     detect_and_reco(frame)
+
+    #Displace FPS
+    new_frame_time = time.time()
+    fps = int(1/(new_frame_time-prev_frame_time))
+    prev_frame_time = new_frame_time
+    cv2.putText(frame, str(fps)+'FPS', (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+    cv2.imshow('Capture - Face detection', frame)
+
 
     if cv2.waitKey(10) == 27:
         break
